@@ -116,7 +116,7 @@ btn.addEventListener('click', () => {
 
 // ---------- CONFETTI ----------
 const confetti = document.getElementById('confetti');
-const COLORS = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6bd6', '#b388ff', '#ffa94d'];
+const COLORS = ['#f28b9b', '#f2c46d', '#8fc9a3', '#7fb2e5', '#e4a6d1', '#b9a3e8', '#f5ae7a'];
 const rand = (min, max) => Math.random() * (max - min) + min;
 let confettiTimer = null;
 

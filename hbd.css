@@ -1,9 +1,9 @@
 :root {
-  --bg: #b7fcf5;
-  --frosting: #4a1fd6;
-  --cake: #ffffff;
-  --flame: #ffb629;
-  --text: #ffffff;
+  --bg: #2b2d42;
+  --frosting: #e58fa8;
+  --cake: #f6efe6;
+  --flame: #ffc15e;
+  --text: #f6efe6;
 }
 
 * { box-sizing: border-box; }
@@ -35,8 +35,8 @@ h1 {
 .letter {
   display: inline-block;      /* needed so each letter can move and scale */
   /* Pastel color per letter: --i (the letter's number) shifts the hue */
-  color: hsl(calc(55 - var(--i) * 2) 100% 85%);
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+  color: hsl(calc(30 - var(--i) * 3) 85% 78%);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
 }
 
 /* 1) each letter pops in (staggered by --appear), 2) then they wave forever */
@@ -166,9 +166,9 @@ h1 {
   background: repeating-linear-gradient(45deg, var(--c) 0 6px, #fff 6px 12px);
 }
 
-.candle:nth-child(1) { --h: 40px; --c: #ff6b81; --drop: 3.3s; --fire: 4.3s; }
-.candle:nth-child(2) { --h: 62px; --c: #f5c400; --drop: 3.6s; --fire: 4.6s; }
-.candle:nth-child(3) { --h: 50px; --c: #3b9cff; --drop: 3.9s; --fire: 4.9s; }
+.candle:nth-child(1) { --h: 40px; --c: #f28b9b; --drop: 3.3s; --fire: 4.3s; }
+.candle:nth-child(2) { --h: 62px; --c: #f2c46d; --drop: 3.6s; --fire: 4.6s; }
+.candle:nth-child(3) { --h: 50px; --c: #7fb2e5; --drop: 3.9s; --fire: 4.9s; }
 
 .flame {
   position: absolute;
@@ -278,8 +278,8 @@ button {
   padding: 12px 28px;
   border: 0;
   border-radius: 999px;
-  background: #fff;
-  color: #2d6b62;
+  background: #f6efe6;
+  color: #2b2d42;
   cursor: pointer;
 }
 button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
