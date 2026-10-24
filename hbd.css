@@ -1,0 +1,424 @@
+:root {
+  --bg: #b7fcf5;
+  --frosting: #4a1fd6;
+  --cake: #ffffff;
+  --flame: #ffb629;
+  --text: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Silkscreen', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  overflow-x: hidden;         /* flying pieces never cause a sideways scrollbar */
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.1rem, 5vw, 2.6rem);
+  font-weight: 800;
+  text-align: center;
+}
+
+/* Words stay together; letters inside are animated one by one */
+.word { display: inline-block; white-space: nowrap; }
+
+.letter {
+  display: inline-block;      /* needed so each letter can move and scale */
+  /* Pastel color per letter: --i (the letter's number) shifts the hue */
+  color: hsl(calc(55 - var(--i) * 2) 100% 85%);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* 1) each letter pops in (staggered by --appear), 2) then they wave forever */
+.pop-in .letter {
+  animation:
+    letterPop 0.7s ease-out var(--appear) both,
+    wave 1.8s ease-in-out calc(var(--appear) + 1.4s) infinite;
+}
+
+/* ---------- CAKE (FINAL STATE) ----------
+   Everything below describes the finished cake.
+   The "INTRO SEQUENCE" section further down animates it into place. */
+.cake {
+  position: relative;
+  width: 240px;
+  height: 220px;
+  margin-top: 130px;          /* empty space above for the mid-air pieces */
+  cursor: pointer;
+}
+
+.body {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 128px;
+  background: var(--cake);
+  border-radius: 14px 14px 22px 22px;
+  overflow: hidden;
+}
+
+.body::after {                /* sprinkles: tilted dashes from an inline SVG */
+  content: "";
+  position: absolute;
+  inset: auto 0 6px 0;
+  height: 20px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='20' viewBox='0 0 240 20'%3E%3Crect x='9' y='10' width='10' height='4' rx='2' fill='%23ff6b6b' transform='rotate(-30 14 12)'/%3E%3Crect x='31' y='5' width='10' height='4' rx='2' fill='%23ffd93d' transform='rotate(40 36 7)'/%3E%3Crect x='53' y='11' width='10' height='4' rx='2' fill='%236bcb77' transform='rotate(10 58 13)'/%3E%3Crect x='75' y='6' width='10' height='4' rx='2' fill='%234d96ff' transform='rotate(-50 80 8)'/%3E%3Crect x='97' y='11' width='10' height='4' rx='2' fill='%23ff6bd6' transform='rotate(60 102 13)'/%3E%3Crect x='119' y='5' width='10' height='4' rx='2' fill='%23b388ff' transform='rotate(-15 124 7)'/%3E%3Crect x='141' y='10' width='10' height='4' rx='2' fill='%23ffa94d' transform='rotate(35 146 12)'/%3E%3Crect x='163' y='5' width='10' height='4' rx='2' fill='%23ff6b6b' transform='rotate(-60 168 7)'/%3E%3Crect x='185' y='11' width='10' height='4' rx='2' fill='%23ffd93d' transform='rotate(20 190 13)'/%3E%3Crect x='207' y='6' width='10' height='4' rx='2' fill='%236bcb77' transform='rotate(-35 212 8)'/%3E%3Crect x='223' y='11' width='10' height='4' rx='2' fill='%234d96ff' transform='rotate(50 228 13)'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+.frosting {
+  position: absolute;
+  top: 52px;
+  width: 100%;
+  height: 40px;
+  background: var(--frosting);
+  border-radius: 16px 16px 0 0;
+  z-index: 2;
+}
+
+.frosting::after {            /* drips: frosting color, cut into a drip shape by a mask */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% - 6px);      /* overlap 6px so there is no seam */
+  height: 40px;
+  background: var(--frosting);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='40' viewBox='0 0 240 40'%3E%3Crect x='0' y='0' width='240' height='12'/%3E%3Crect x='4.0' y='0' width='16' height='22' rx='8.0'/%3E%3Crect x='29.0' y='0' width='14' height='32' rx='7.0'/%3E%3Ccircle cx='36' cy='24.5' r='8.5'/%3E%3Crect x='51.0' y='0' width='18' height='14' rx='9.0'/%3E%3Crect x='78.0' y='0' width='12' height='20' rx='6.0'/%3E%3Ccircle cx='84' cy='13.5' r='7.5'/%3E%3Crect x='100.0' y='0' width='20' height='12' rx='10.0'/%3E%3Crect x='129.0' y='0' width='14' height='18' rx='7.0'/%3E%3Crect x='152.0' y='0' width='16' height='28' rx='8.0'/%3E%3Ccircle cx='160' cy='19.5' r='9.5'/%3E%3Crect x='177.0' y='0' width='14' height='14' rx='7.0'/%3E%3Crect x='199.0' y='0' width='18' height='34' rx='9.0'/%3E%3Ccircle cx='208' cy='24.5' r='10.5'/%3E%3Crect x='223.0' y='0' width='14' height='20' rx='7.0'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='40' viewBox='0 0 240 40'%3E%3Crect x='0' y='0' width='240' height='12'/%3E%3Crect x='4.0' y='0' width='16' height='22' rx='8.0'/%3E%3Crect x='29.0' y='0' width='14' height='32' rx='7.0'/%3E%3Ccircle cx='36' cy='24.5' r='8.5'/%3E%3Crect x='51.0' y='0' width='18' height='14' rx='9.0'/%3E%3Crect x='78.0' y='0' width='12' height='20' rx='6.0'/%3E%3Ccircle cx='84' cy='13.5' r='7.5'/%3E%3Crect x='100.0' y='0' width='20' height='12' rx='10.0'/%3E%3Crect x='129.0' y='0' width='14' height='18' rx='7.0'/%3E%3Crect x='152.0' y='0' width='16' height='28' rx='8.0'/%3E%3Ccircle cx='160' cy='19.5' r='9.5'/%3E%3Crect x='177.0' y='0' width='14' height='14' rx='7.0'/%3E%3Crect x='199.0' y='0' width='18' height='34' rx='9.0'/%3E%3Ccircle cx='208' cy='24.5' r='10.5'/%3E%3Crect x='223.0' y='0' width='14' height='20' rx='7.0'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+
+/* Face and mouth are centered with left/right instead of transform,
+   so `transform` stays free for the flying animation */
+.face {
+  position: absolute;
+  top: 126px;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  gap: 34px;
+}
+
+.eye {
+  width: 16px;
+  height: 20px;
+  background: #111;
+  border-radius: 50%;
+  position: relative;
+  animation: blink 4s infinite, look 6s ease-in-out 5.4s infinite;
+}
+
+.eye::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.mouth {
+  position: absolute;
+  top: 158px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 26px;
+  height: 13px;
+  border: 3px solid #111;
+  border-top: none;
+  border-radius: 0 0 26px 26px;
+  z-index: 3;
+}
+
+.candles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 78px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 36px;
+  z-index: 1;
+}
+
+.candle {
+  position: relative;
+  width: 14px;
+  height: var(--h);
+  transform-origin: 50% 100%;   /* sway from the base */
+  border-radius: 4px 4px 0 0;
+  background: repeating-linear-gradient(45deg, var(--c) 0 6px, #fff 6px 12px);
+}
+
+.candle:nth-child(1) { --h: 40px; --c: #ff6b81; --drop: 3.3s; --fire: 4.3s; }
+.candle:nth-child(2) { --h: 62px; --c: #f5c400; --drop: 3.6s; --fire: 4.6s; }
+.candle:nth-child(3) { --h: 50px; --c: #3b9cff; --drop: 3.9s; --fire: 4.9s; }
+
+.flame {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  width: 14px;
+  height: 24px;
+  margin-left: -7px;
+  background: var(--flame);
+  border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+  box-shadow: 0 0 14px 4px rgba(255, 182, 41, 0.7);
+  transform-origin: 50% 100%;
+  animation: flicker 0.18s ease-in-out infinite alternate;
+}
+
+/* ---------- INTRO SEQUENCE ----------
+   Each part gets 3 animations:
+     pop  = appears in mid-air (fade + grow)
+     bob  = hovers up and down while waiting
+     land = flies from its scattered spot into its final spot
+
+   Each part sets its own variables:
+     --x --y --r  where it starts (offset from final spot, tilt)
+     --appear     when it pops in
+     --land       when it starts flying into place
+     --dur        how long the flight takes                       */
+
+.intro .body,
+.intro .frosting,
+.intro .face,
+.intro .mouth {
+  will-change: transform, scale, opacity;
+  animation:
+    pop 0.5s ease-out var(--appear) both,
+    bob 0.8s ease-in-out 6,
+    land var(--dur) cubic-bezier(0.22, 1, 0.36, 1) var(--land) both;
+}
+
+.intro .body {
+  --x: -80px; --y: -60px; --r: -10deg; --appear: 0s; --land: 1s; --dur: 0.9s;
+  transform-origin: 50% 100%;
+  animation:
+    pop 0.5s ease-out var(--appear) both,
+    bob 0.8s ease-in-out 6,
+    land var(--dur) cubic-bezier(0.22, 1, 0.36, 1) var(--land) both,
+    jiggle 0.7s ease-out calc(var(--land) + var(--dur));   /* wobble on impact */
+}
+.intro .face    { --x: 110px; --y: -120px; --r: 12deg;  --appear: 0.7s; --land: 2.7s; --dur: 0.7s; }
+.intro .mouth   { --x: -110px; --y: -140px; --r: -12deg; --appear: 0.9s; --land: 2.8s; --dur: 0.7s; }
+
+.intro .frosting {
+  --x: 70px; --y: -170px; --r: 8deg;
+  --appear: 0.35s; --land: 1.9s; --dur: 0.8s;
+  transform-origin: 50% 100%;
+  animation:
+    pop 0.5s ease-out var(--appear) both,
+    bob 0.8s ease-in-out 6,
+    land var(--dur) cubic-bezier(0.22, 1, 0.36, 1) var(--land) both,
+    squash 0.4s ease-out calc(var(--land) + var(--dur));  /* squish on impact */
+}
+
+/* Candles hover with the cake, then each one drops in */
+.intro .candles { animation: bob 0.8s ease-in-out 6; }
+.intro .candle  {
+  animation:
+    candleDrop 1s linear var(--drop) both,
+    sway 1.6s ease-in-out calc(var(--drop) + 1s) infinite alternate;
+}
+
+/* Flames: grow, then flicker forever */
+.intro .flame {
+  animation:
+    ignite 0.4s ease-out var(--fire) both,
+    flicker 0.18s ease-in-out calc(var(--fire) + 0.4s) infinite alternate;
+}
+
+/* When everything is built, the whole cake starts bouncing */
+.intro { transform-origin: 50% 100%; animation: bounce 1.2s ease-in-out 5.4s infinite; }
+
+/* Blown out (must come AFTER .intro .flame so it wins) */
+.out .flame {
+  animation: none;
+  opacity: 0;
+  scale: 0;
+  transition: 0.3s;
+}
+
+/* ---------- CONFETTI ---------- */
+/* Full-screen layer that sits on top but never blocks clicks */
+#confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.piece {
+  position: absolute;
+  will-change: transform, opacity;
+}
+
+/* ---------- BUTTON ---------- */
+button {
+  font: inherit;
+  font-weight: 600;
+  padding: 12px 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #2d6b62;
+  cursor: pointer;
+}
+button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+button:disabled { opacity: 0.7; cursor: default; }
+/* Waiting screen: only the button exists. Title and cake are not even in the layout. */
+.waiting h1,
+.waiting .cake { display: none; }
+
+.waiting button { font-size: 1.2rem; padding: 16px 36px; }
+
+button {
+  transition: transform 0.15s ease;
+  /* Pops in, then gently pulses to invite a click */
+  animation:
+    pop 0.6s ease-out 0.3s both,
+    pulse 1.6s ease-in-out 0.9s infinite;
+}
+
+/* Button states (added and removed by JS) */
+button.reappear { animation: pop 0.5s ease-out both, pulse 1.6s ease-in-out 0.5s infinite; }
+button.leave    { animation: popOut 0.35s ease-in forwards; }   /* must stay after .reappear */
+button.is-hidden { visibility: hidden; }   /* invisible but still holds its space, so nothing shifts */
+button:hover:not(:disabled)  { transform: scale(1.08) rotate(-2deg); }
+button:active:not(:disabled) { transform: scale(0.95); }
+
+/* ---------- KEYFRAMES ---------- */
+/* Individual properties (translate, rotate, scale) stack with `transform`,
+   so these animations can run together without overriding each other. */
+
+/* Pop: starts tiny and bright, overshoots a little, then settles.
+   The cubic-bezier with 1.56 is what creates the springy overshoot. */
+@keyframes pop {
+  0%   { opacity: 0; scale: 0; filter: brightness(2);
+         animation-timing-function: cubic-bezier(0.34, 1.9, 0.64, 1); }
+  100% { opacity: 1; scale: 1; filter: brightness(1); }
+}
+
+@keyframes bob {              /* hover: up 8px and back */
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -12px; }
+}
+
+@keyframes land {             /* fly from the scattered spot to the final spot */
+  from { transform: translate(var(--x), var(--y)); rotate: var(--r); }
+  to   { transform: translate(0, 0);               rotate: 0deg; }
+}
+
+@keyframes squash {
+  0%, 100% { scale: 1 1; }
+  30%      { scale: 1.08 0.8; }
+  60%      { scale: 0.97 1.06; }
+}
+
+@keyframes jiggle {
+  0%, 100% { scale: 1 1; }
+  25%      { scale: 1.05 0.93; }
+  50%      { scale: 0.98 1.03; }
+  75%      { scale: 1.01 0.99; }
+}
+
+/* Candle: pop in mid-air (0-30%), fall (30-85%), sink in and settle (85-100%) */
+@keyframes candleDrop {
+  0%   { opacity: 0; scale: 0; transform: translateY(-140px);
+         animation-timing-function: cubic-bezier(0.34, 1.9, 0.64, 1); }
+  30%  { opacity: 1; scale: 1; transform: translateY(-140px);
+         animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+  85%  { transform: translateY(5px);
+         animation-timing-function: ease-out; }
+  100% { transform: translateY(0); }
+}
+
+@keyframes ignite {
+  from { scale: 0; opacity: 0; animation-timing-function: cubic-bezier(0.34, 1.9, 0.64, 1); }
+  to   { scale: 1; opacity: 1; }
+}
+
+@keyframes flicker {
+  from { transform: scale(1, 1) rotate(-5deg); }
+  to   { transform: scale(0.85, 1.2) rotate(5deg); }
+}
+
+/* Squash down, stretch up, tilt a little, squash on landing */
+@keyframes bounce {
+  0%   { transform: translateY(0) scale(1, 1); rotate: 0deg;
+         animation-timing-function: ease-in; }
+  15%  { transform: translateY(0) scale(1.06, 0.92); rotate: 0deg;
+         animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+  50%  { transform: translateY(-30px) scale(0.96, 1.06); rotate: -2.5deg;
+         animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.5); }
+  85%  { transform: translateY(0) scale(1.06, 0.92); rotate: 2deg;
+         animation-timing-function: ease-out; }
+  100% { transform: translateY(0) scale(1, 1); rotate: 0deg; }
+}
+
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96%           { transform: scaleY(0.1); }
+}
+
+@keyframes pulse {            /* gentle heartbeat on the button */
+  0%, 100% { scale: 1; }
+  50%      { scale: 1.06; }
+}
+
+@keyframes popOut {           /* swell a little, then vanish */
+  0%   { scale: 1;    opacity: 1; }
+  30%  { scale: 1.12; opacity: 1; }
+  100% { scale: 0;    opacity: 0; }
+}
+
+@keyframes letterPop {        /* letters fly up, tilt, and pop into place */
+  0%   { opacity: 0; transform: translateY(40px) rotate(-25deg) scale(0); filter: brightness(2);
+         animation-timing-function: cubic-bezier(0.34, 1.9, 0.64, 1); }
+  100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); filter: brightness(1); }
+}
+
+@keyframes wave {             /* each letter bobs; staggered delays make a wave */
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -8px; }
+}
+
+@keyframes look {             /* eyes glance left and right */
+  0%, 100% { translate: 0 0; }
+  30%      { translate: 3px 0; }
+  60%      { translate: -3px 1px; }
+}
+
+@keyframes sway {             /* candles lean back and forth */
+  from { rotate: -3deg; }
+  to   { rotate: 3deg; }
+}
+
+/* If the user turned off motion in their OS, show the finished cake */
+@media (prefers-reduced-motion: reduce) {
+  .cake, .cake *, .letter, button { animation: none !important; }
+}
+
+@media (max-height: 500px) {
+  body { gap: 12px; }
+  h1 { font-size: 1.2rem; }
+  .cake { margin-top: 60px; zoom: 0.75; }
+}
